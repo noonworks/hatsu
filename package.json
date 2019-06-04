@@ -14,5 +14,15 @@
     "prettier": "^1.17.1",
     "ts-jest": "^24.0.2",
     "typescript": "^3.5.1"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json"
+    ]
   }
 }
