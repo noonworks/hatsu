@@ -10,6 +10,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
+    "outDir": "./docs",
     /* Strict Type-Checking Options */
     "strict": true,
     "noImplicitAny": true,

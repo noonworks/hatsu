@@ -5,9 +5,14 @@
   "author": "noonworks",
   "license": "MIT",
   "scripts": {
+    "build": "npm-run-all -p build:js build:copy",
+    "build:js": "browserify --node -o docs/js/main.js -p [ tsify -p . ] src/ts/index.ts",
+    "build:copy": "cpx \"./src/public/**/*\" ./docs",
+    "clean": "rimraf ./docs/*",
     "test": "jest",
     "lint": "eslint .",
-    "fix": "eslint --fix ."
+    "fix": "eslint --fix .",
+    "serve": "superstatic docs --port 8080 --host localhost"
   },
   "devDependencies": {
     "@types/jest": "^24.0.13",
