@@ -4,6 +4,11 @@
   "main": "index.js",
   "author": "noonworks",
   "license": "MIT",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint .",
+    "fix": "eslint --fix ."
+  },
   "devDependencies": {
     "@types/jest": "^24.0.13",
     "@typescript-eslint/eslint-plugin": "^1.9.0",
