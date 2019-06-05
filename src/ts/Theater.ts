@@ -1,6 +1,7 @@
 import { ITheater } from "./ITheater";
 import { IBack } from "./IBack";
 import { IHatsuSprite } from "./IHatsuSprite";
+import Timer from "./Timer";
 
 export class Theater implements ITheater {
   private id: string;
@@ -14,6 +15,8 @@ export class Theater implements ITheater {
 
   private back: IBack[] = [];
   private hatsu: IHatsuSprite[] = [];
+  private _timer: Timer = new Timer();
+  private _requestId: number = -1;
 
   public get width16(): number {
     return this._width16;
@@ -33,6 +36,10 @@ export class Theater implements ITheater {
 
   public get context(): CanvasRenderingContext2D {
     return this.ctx;
+  }
+
+  public get msec(): number {
+    return this._timer.msec();
   }
 
   constructor(id: string, width16: number) {
@@ -72,7 +79,33 @@ export class Theater implements ITheater {
     this.hatsu.length = 0;
   }
 
-  public draw(): void {
+  public start(): void {
+    if (this._timer.started && !this._timer.paused) {
+      return;
+    }
+    this._timer.start();
+    const loop = () => {
+      this.draw();
+      this._requestId = window.requestAnimationFrame(loop);
+    };
+    window.requestAnimationFrame(loop);
+  }
+
+  public stop(): void {
+    this._timer.stop();
+    window.cancelAnimationFrame(this._requestId);
+    this._requestId = -1;
+  }
+
+  public pause(): void {
+    if (this._timer.started && !this._timer.paused) {
+      this._timer.pause();
+      window.cancelAnimationFrame(this._requestId);
+      this._requestId = -1;
+    }
+  }
+
+  private draw(): void {
     this.ctx.clearRect(0, 0, this._width16, this._height);
     this.back.forEach((b) => b.draw(this));
     this.hatsu.forEach((h) => h.draw(this));

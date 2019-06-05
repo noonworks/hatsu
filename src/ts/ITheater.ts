@@ -7,9 +7,12 @@ export interface ITheater {
   widthBar: number;
   height: number;
   context: CanvasRenderingContext2D;
+  msec: number;
   addBack(back: IBack): void;
   clearBack(): void;
   addHatsu(hatsu: IHatsuSprite): void;
   clearHatsu(): void;
-  draw(): void;
+  start(): void;
+  stop(): void;
+  pause(): void;
 }
