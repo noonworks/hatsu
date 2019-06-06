@@ -3,12 +3,10 @@ import { IHatsu } from "./IHatsu";
 import { HatsuSprite } from "./HatsuSprite";
 
 export function addSprites(theater: ITheater, img: IHatsu): void {
-  [HatsuA, HatsuB].forEach((h) => {
+  [HatsuA, HatsuB, HatsuC].forEach((h) => {
     theater.addHatsu(new HatsuSprite({ img, draw: h }));
   });
 }
-
-const WHOLE_MSEC = 15 * 1000;
 
 function modular(msec: number): number {
   return msec % WHOLE_MSEC;
@@ -30,15 +28,15 @@ const A_LENGTH = A_END - A_START;
 export function HatsuA(theater: ITheater, img: IHatsu) {
   const msec = modular(theater.msec) - A_START;
   if (msec < 0 || msec > A_LENGTH) { return; }
-  const x1 = theater.widthBar - img.width;
+  const { dw, dh } = hatsuSize(theater, img);
+  const x1 = theater.widthBar - dw;
   const x2 = theater.widthBar + theater.width4;
   const x = liner(x1, x2, A_LENGTH, msec);
   if (x > theater.width4 + theater.widthBar) { return; }
   const y1 = Math.floor(theater.width16 / 20);
-  const y2 = theater.height - y1 - img.height;
+  const y2 = theater.height - y1 - dh;
   const y = liner(y1, y2, A_LENGTH, msec);
   if (y > theater.height) { return; }
-  const { dw, dh } = hatsuSize(theater, img);
   theater.context.globalAlpha = 0.8;
   theater.context.drawImage(img.img, 0, 0, img.width, img.height, x, y, dw, dh);
   theater.context.globalAlpha = 1.0;
@@ -71,3 +69,26 @@ export function HatsuB(theater: ITheater, img: IHatsu) {
   theater.context.drawImage(img.img, 0, 0, img.width, img.height, x, y, dw * z, dh * z);
   theater.context.globalAlpha = 1.0;
 }
+
+const C_START = 7750;
+const C_END = 11870;
+const C_LENGTH = C_END - C_START;
+export function HatsuC(theater: ITheater, img: IHatsu) {
+  const msec = modular(theater.msec) - C_START;
+  if (msec < 0 || msec > C_LENGTH) { return; }
+  const { dw, dh } = hatsuSize(theater, img);
+  const x1 = theater.widthBar + theater.width4;
+  const x2 = theater.widthBar - dw;
+  const x = liner(x1, x2, C_LENGTH, msec);
+  if (x > theater.width4 + theater.widthBar) { return; }
+  const y1 = theater.height - dh;
+  const y2 = 0;
+  const y = liner(y1, y2, C_LENGTH, msec);
+  if (y > theater.height) { return; }
+  theater.context.globalAlpha = 0.8;
+  theater.context.drawImage(img.img, 0, 0, img.width, img.height, x, y, dw, dh);
+  theater.context.globalAlpha = 1.0;
+}
+
+
+const WHOLE_MSEC = C_END + 3000;
