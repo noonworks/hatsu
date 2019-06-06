@@ -3,7 +3,7 @@ import { IHatsu } from "./IHatsu";
 import { HatsuSprite } from "./HatsuSprite";
 
 export function addSprites(theater: ITheater, img: IHatsu): void {
-  [HatsuA, HatsuB, HatsuD, HatsuC].forEach((h) => {
+  [HatsuA, HatsuB, HatsuD, HatsuC, HatsuE].forEach((h) => {
     theater.addHatsu(new HatsuSprite({ img, draw: h }));
   });
 }
@@ -123,5 +123,39 @@ export function HatsuD(theater: ITheater, img: IHatsu) {
   theater.context.globalAlpha = 1.0;
 }
 
+const E_START = 14370;
+const E_END = 18820;
+const E_LENGTH = E_END - E_START;
+const E_ZOOM_MIN = 0.15;
+const E_ZOOM_MAX = 2.6;
+export function HatsuE(theater: ITheater, img: IHatsu) {
+  const msec = modular(theater.msec) - E_START;
+  if (msec < 0 || msec > E_LENGTH) { return; }
+  const { dw, dh } = hatsuSize(theater, img);
+  // ※方程式は發の中心点の軌跡
+  // 点P
+  const Px = theater.width16;
+  const Py = dh * 2 / 3;
+  // 点Q (Qx = 0)
+  const Qy = theater.height - dh / 2;
+  // 2点Qを通る y = ax + b
+  const b = Qy;
+  const a = (Py - b) / Px;
+  // 始点S
+  const Sx = theater.width16 - dw * 1.75;
+  // 終点E
+  const Ex = theater.widthBar - dw * E_ZOOM_MAX / 2;
+  // 座標
+  const x = liner(Sx, Ex, E_LENGTH, msec);
+  if (x > theater.width4 + theater.widthBar || x < Ex) { return; }
+  const y = a * x + b;
+  if (y > theater.height) { return; }
+  // 拡大率
+  const z = liner(E_ZOOM_MIN, E_ZOOM_MAX, E_LENGTH, msec);
+  theater.context.globalAlpha = 0.8;
+  theater.context.drawImage(img.img, 0, 0, img.width, img.height,
+    x - dw * z / 2, y - dh * z / 2, dw * z, dh * z);
+  theater.context.globalAlpha = 1.0;
+}
 
-const WHOLE_MSEC = D_END + 1500;
+const WHOLE_MSEC = E_END + 1500;
