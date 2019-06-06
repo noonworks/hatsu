@@ -3,7 +3,7 @@ import { IHatsu } from "./IHatsu";
 import { HatsuSprite } from "./HatsuSprite";
 
 export function addSprites(theater: ITheater, img: IHatsu): void {
-  [HatsuA, HatsuB, HatsuC].forEach((h) => {
+  [HatsuA, HatsuB, HatsuD, HatsuC].forEach((h) => {
     theater.addHatsu(new HatsuSprite({ img, draw: h }));
   });
 }
@@ -90,5 +90,38 @@ export function HatsuC(theater: ITheater, img: IHatsu) {
   theater.context.globalAlpha = 1.0;
 }
 
+const D_START = 10360;
+const D_END = 15480;
+const D_LENGTH = D_END - D_START;
+const D_MAX_ZOOM = 1.63;
+export function HatsuD(theater: ITheater, img: IHatsu) {
+  const msec = modular(theater.msec) - D_START;
+  if (msec < 0 || msec > D_LENGTH) { return; }
+  const { dw, dh } = hatsuSize(theater, img);
+  // 頂点P
+  const Px = (theater.width16 - dw * D_MAX_ZOOM) / 2;
+  const Py = dh * 0.1;
+  // 点Q
+  const Qx = theater.width4 + theater.widthBar;
+  const Qy = dh * 0.95;
+  // 点Qを通る y = a(x - Px)^2 + Py
+  const a = (Qy - Py) / ((Qx - Px) * (Qx - Px));
+  // 座標
+  const x = liner(dw * -1, theater.width4 + theater.widthBar, D_LENGTH, msec);
+  if (x > theater.width4 + theater.widthBar || x < dw * -1) { return; }
+  const y = a * (x - Px) * (x - Px) + Py;
+  if (y > theater.height || y < dh * -1) { return; }
+  // 拡大率
+  let z: number;
+  if (msec <= D_LENGTH / 2) {
+    z = liner(1.1, D_MAX_ZOOM, D_LENGTH / 2, msec);
+  } else {
+    z = liner(D_MAX_ZOOM, 1.1, D_LENGTH / 2, msec - D_LENGTH / 2);
+  }
+  theater.context.globalAlpha = 0.8;
+  theater.context.drawImage(img.img, 0, 0, img.width, img.height, x, y, dw * z, dh * z);
+  theater.context.globalAlpha = 1.0;
+}
 
-const WHOLE_MSEC = C_END + 3000;
+
+const WHOLE_MSEC = D_END + 1500;
