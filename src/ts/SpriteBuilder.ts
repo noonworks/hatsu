@@ -3,7 +3,7 @@ import { IHatsu } from "./IHatsu";
 import { HatsuSprite } from "./HatsuSprite";
 
 export function addSprites(theater: ITheater, img: IHatsu): void {
-  [HatsuA, HatsuB, HatsuD, HatsuC, HatsuE].forEach((h) => {
+  [HatsuA, HatsuB, HatsuD, HatsuC, HatsuE, HatsuF].forEach((h) => {
     theater.addHatsu(new HatsuSprite({ img, draw: h }));
   });
 }
@@ -158,4 +158,28 @@ export function HatsuE(theater: ITheater, img: IHatsu) {
   theater.context.globalAlpha = 1.0;
 }
 
-const WHOLE_MSEC = E_END + 1500;
+const F_START = 16780;
+const F_END = 22570;
+const F_LENGTH = F_END - F_START;
+const F_ZOOM = 1.2;
+export function HatsuF(theater: ITheater, img: IHatsu) {
+  const msec = modular(theater.msec) - F_START;
+  if (msec < 0 || msec > F_LENGTH) { return; }
+  const { dw, dh } = hatsuSize(theater, img);
+  // 始点S
+  const Sx = theater.width16 * 5 / 8;
+  const Sy = theater.height;
+  // 終点E
+  const Ex = dw * F_ZOOM / 10;
+  const Ey = dh * F_ZOOM * -1;
+  // 座標
+  const x = liner(Sx, Ex, F_LENGTH, msec);
+  if (x > theater.width4 + theater.widthBar || x < Ex) { return; }
+  const y = liner(Sy, Ey, F_LENGTH, msec);
+  if (y > theater.height || y < Ey) { return; }
+  theater.context.globalAlpha = 0.8;
+  theater.context.drawImage(img.img, 0, 0, img.width, img.height, x, y, dw * F_ZOOM, dh * F_ZOOM);
+  theater.context.globalAlpha = 1.0;
+}
+
+const WHOLE_MSEC = F_END + 1500;
