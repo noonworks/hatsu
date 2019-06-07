@@ -220,7 +220,7 @@ export function HatsuG(theater: ITheater, img: IHatsu) {
   theater.context.rotate(r * TO_RADIAN);
   theater.context.globalAlpha = BASE_ALPHA;
   theater.context.drawImage(img.img, 0, 0, img.width, img.height,
-    dw * F_ZOOM * -0.5, dh * F_ZOOM * -0.5, dw * F_ZOOM, dh * F_ZOOM);
+    dw * G_ZOOM * -0.5, dh * G_ZOOM * -0.5, dw * G_ZOOM, dh * G_ZOOM);
   theater.context.globalAlpha = 1.0;
   theater.context.restore();
 }
