@@ -3,6 +3,7 @@ import { IHatsu } from "./IHatsu";
 import { HatsuSprite } from "./HatsuSprite";
 
 const TO_RADIAN = Math.PI / 180;
+const BASE_ALPHA = 0.82;
 
 export function addSprites(theater: ITheater, img: IHatsu): void {
   [HatsuA, HatsuB, HatsuD, HatsuC, HatsuE, HatsuF, HatsuG].forEach((h) => {
@@ -39,7 +40,7 @@ export function HatsuA(theater: ITheater, img: IHatsu) {
   const y2 = theater.height - y1 - dh;
   const y = liner(y1, y2, A_LENGTH, msec);
   if (y > theater.height) { return; }
-  theater.context.globalAlpha = 0.8;
+  theater.context.globalAlpha = BASE_ALPHA;
   theater.context.drawImage(img.img, 0, 0, img.width, img.height, x, y, dw, dh);
   theater.context.globalAlpha = 1.0;
 }
@@ -67,7 +68,7 @@ export function HatsuB(theater: ITheater, img: IHatsu) {
   if (x > theater.width4 + theater.widthBar || x < dw * -1) { return; }
   const y = a * (x - Px) * (x - Px) + Py;
   if (y > theater.height || y < dh * -1) { return; }
-  theater.context.globalAlpha = 0.8;
+  theater.context.globalAlpha = BASE_ALPHA;
   theater.context.drawImage(img.img, 0, 0, img.width, img.height, x, y, dw * z, dh * z);
   theater.context.globalAlpha = 1.0;
 }
@@ -87,7 +88,7 @@ export function HatsuC(theater: ITheater, img: IHatsu) {
   const y2 = 0;
   const y = liner(y1, y2, C_LENGTH, msec);
   if (y > theater.height) { return; }
-  theater.context.globalAlpha = 0.8;
+  theater.context.globalAlpha = BASE_ALPHA;
   theater.context.drawImage(img.img, 0, 0, img.width, img.height, x, y, dw, dh);
   theater.context.globalAlpha = 1.0;
 }
@@ -120,7 +121,7 @@ export function HatsuD(theater: ITheater, img: IHatsu) {
   } else {
     z = liner(D_MAX_ZOOM, 1.1, D_LENGTH / 2, msec - D_LENGTH / 2);
   }
-  theater.context.globalAlpha = 0.8;
+  theater.context.globalAlpha = BASE_ALPHA;
   theater.context.drawImage(img.img, 0, 0, img.width, img.height, x, y, dw * z, dh * z);
   theater.context.globalAlpha = 1.0;
 }
@@ -154,7 +155,7 @@ export function HatsuE(theater: ITheater, img: IHatsu) {
   if (y > theater.height) { return; }
   // 拡大率
   const z = liner(E_ZOOM_MIN, E_ZOOM_MAX, E_LENGTH, msec);
-  theater.context.globalAlpha = 0.8;
+  theater.context.globalAlpha = BASE_ALPHA;
   theater.context.drawImage(img.img, 0, 0, img.width, img.height,
     x - dw * z / 2, y - dh * z / 2, dw * z, dh * z);
   theater.context.globalAlpha = 1.0;
@@ -179,7 +180,7 @@ export function HatsuF(theater: ITheater, img: IHatsu) {
   if (x > theater.width4 + theater.widthBar || x < Ex) { return; }
   const y = liner(Sy, Ey, F_LENGTH, msec);
   if (y > theater.height || y < Ey) { return; }
-  theater.context.globalAlpha = 0.8;
+  theater.context.globalAlpha = BASE_ALPHA;
   theater.context.drawImage(img.img, 0, 0, img.width, img.height, x, y, dw * F_ZOOM, dh * F_ZOOM);
   theater.context.globalAlpha = 1.0;
 }
@@ -217,7 +218,7 @@ export function HatsuG(theater: ITheater, img: IHatsu) {
   theater.context.save();
   theater.context.translate(x, y);
   theater.context.rotate(r * TO_RADIAN);
-  theater.context.globalAlpha = 0.8;
+  theater.context.globalAlpha = BASE_ALPHA;
   theater.context.drawImage(img.img, 0, 0, img.width, img.height,
     dw * F_ZOOM * -0.5, dh * F_ZOOM * -0.5, dw * F_ZOOM, dh * F_ZOOM);
   theater.context.globalAlpha = 1.0;
