@@ -1,12 +1,13 @@
 import { ITheater } from "./ITheater";
 import { IHatsu } from "./IHatsu";
 import { HatsuSprite } from "./HatsuSprite";
+import { IHatsuSprite } from "./IHatsuSprite";
 
 const TO_RADIAN = Math.PI / 180;
 const BASE_ALPHA = 0.82;
 
 export function addSprites(theater: ITheater, img: IHatsu): void {
-  [HatsuA, HatsuB, HatsuD, HatsuC, HatsuE, HatsuF, HatsuG, HatsuH, HatsuI].forEach((h) => {
+  [HatsuA, HatsuB, HatsuD, HatsuC, HatsuE, HatsuF, HatsuG, HatsuH, HatsuI, HatsuJ].forEach((h) => {
     theater.addHatsu(new HatsuSprite({ img, draw: h }));
   });
 }
@@ -308,4 +309,68 @@ export function HatsuI(theater: ITheater, img: IHatsu) {
   theater.context.globalAlpha = 1.0;
 }
 
-const WHOLE_MSEC = I_END + 1500;
+const J_START = 37580;
+const J_END = 56270;
+const J_LENGTH = J_END - J_START;
+const J_ZOOM_MIN = 0.05;
+const J_ZOOM_END = 44370;
+const J_ZOOM_MAX = 1.26;
+const J_ALPHA_MIN = 0.1;
+const J_ALPHA_IN_END = 38450;
+const J_ALPHA_OUT_START = 55540;
+const J_ROTATE_PATH: SVGPathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+J_ROTATE_PATH.setAttribute('d', 'M 0 76.785 C 84.712 68.367 116.849 64.897 141.276 0');
+const J_ROTATE_PATH_MAX = J_ROTATE_PATH.getTotalLength();
+const J_ROTATE_PATH_KEY = 'rotate_path_pos';
+const J_ROTATE_PATH_X_MAX = 141.276;
+const J_ROTATE_PATH_Y_MAX = 76.785;
+const J_ROTATE_MAX = 4680;
+export function HatsuJ(theater: ITheater, img: IHatsu, sprite: IHatsuSprite) {
+  const msec = modular(theater.msec) - J_START;
+  if (msec < 0 || msec > J_LENGTH) {
+    sprite.setState(J_ROTATE_PATH_KEY, 0);
+    return;
+  }
+  const { dw, dh } = hatsuSize(theater, img);
+  // 中心点
+  const x = theater.width16 * 140 / 480;
+  const y = theater.height * 165 / 270;
+  // 拡大率
+  let z = J_ZOOM_MAX;
+  if (msec < J_ZOOM_END - J_START) {
+    z = liner(J_ZOOM_MIN, J_ZOOM_MAX, J_ZOOM_END - J_START, msec);
+  }
+  // 透過率
+  let o = BASE_ALPHA;
+  if (msec < J_ALPHA_IN_END - J_START) {
+    o = liner(J_ALPHA_MIN, BASE_ALPHA, J_ALPHA_IN_END - J_START, msec);
+  }
+  if (msec >= J_ALPHA_OUT_START - J_START) {
+    o = liner(BASE_ALPHA, J_ALPHA_MIN, J_END - J_ALPHA_OUT_START, msec - (J_ALPHA_OUT_START - J_START));
+  }
+  // 回転角度 r = f(msec)
+  const v = sprite.getState(J_ROTATE_PATH_KEY);
+  let len = (typeof (v) === 'number') ? v : 0;
+  let r = 0;
+  while (len <= J_ROTATE_PATH_MAX) {
+    const p = J_ROTATE_PATH.getPointAtLength(len);
+    const x_msec = p.x * J_LENGTH / J_ROTATE_PATH_X_MAX;
+    if (x_msec >= msec) {
+      r = p.y / J_ROTATE_PATH_Y_MAX * J_ROTATE_MAX * -1;
+      // console.log(len, msec, x_msec, r);
+      break;
+    }
+    len += 0.1;
+  }
+  sprite.setState(J_ROTATE_PATH_KEY, len);
+  theater.context.save();
+  theater.context.translate(x, y);
+  theater.context.rotate(r * TO_RADIAN);
+  theater.context.globalAlpha = o;
+  theater.context.drawImage(img.img, 0, 0, img.width, img.height,
+    -(dw * z / 2), -(dh * z / 2), dw * z, dh * z);
+  theater.context.globalAlpha = 1.0;
+  theater.context.restore();
+}
+
+const WHOLE_MSEC = J_END + 1000;
