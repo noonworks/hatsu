@@ -6,17 +6,41 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>HATSU</title>
+  <style>
+    h2 {
+      margin: 1em 0 0.25em 0;
+      font-size: 1.25em;
+    }
+
+    h2:first-child {
+      margin-top: 0;
+    }
+
+    div#result_area {
+      margin-top: 1em;
+    }
+
+    label+input[type=radio] {
+      margin-left: 1.0em;
+    }
+
+  </style>
 </head>
 
 <body>
   <div>
-    <h2>發</h2>
-    <input type="radio" id="hatsu_default" name="hatsu" value="hatsu_default" checked="checked"><label>デフォルト</label>
-    <!-- <img src="./img/hatsu.png" /> -->
+    <form id="options">
+      <h2>發</h2>
+      <input type="radio" id="hatsu_default" name="hatsu" checked="checked"><label for="hatsu_default">デフォルト</label>
 
-    <h2>背景</h2>
-    <input type="radio" id="back_default" name="back" value="back_default" checked="checked"><label>デフォルト</label>
-    <!-- <img src="./img/sample_back.png" width="360" height="270" /> -->
+      <h2>背景</h2>
+      <input type="radio" id="back_default" name="back" checked="checked"><label for="back_default">サンプル</label>
+
+      <h2>サイズ</h2>
+      <input type="radio" id="size_480" name="size" checked="checked"><label for="size_480">480 * 270</label>
+      <input type="radio" id="size_640" name="size"><label for="size_640">640 * 360</label>
+      <input type="radio" id="size_960" name="size"><label for="size_960">960 * 540</label>
+    </form>
   </div>
 
   <div id="result_area">

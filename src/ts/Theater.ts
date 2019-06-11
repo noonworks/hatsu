@@ -2,16 +2,18 @@ import { ITheater } from "./ITheater";
 import { IBack } from "./IBack";
 import { IHatsuSprite } from "./IHatsuSprite";
 import Timer from "./Timer";
+import { Options } from "./Options";
 
 export class Theater implements ITheater {
   private id: string;
-  private canvas: HTMLCanvasElement;
+  private options: Options;
+  private _canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
 
-  private _width16: number;
-  private _width4: number;
-  private _widthBar: number;
-  private _height: number;
+  private _width16: number = 480;
+  private _width4: number = 320;
+  private _widthBar: number = 60;
+  private _height: number = 270;
 
   private back: IBack[] = [];
   private hatsu: IHatsuSprite[] = [];
@@ -34,6 +36,10 @@ export class Theater implements ITheater {
     return this._height;
   }
 
+  public get canvas(): HTMLCanvasElement {
+    return this._canvas;
+  }
+
   public get context(): CanvasRenderingContext2D {
     return this.ctx;
   }
@@ -42,25 +48,17 @@ export class Theater implements ITheater {
     return this._timer.msec();
   }
 
-  constructor(id: string, width16: number) {
+  constructor(id: string, options: Options) {
     this.id = id;
-    this._width16 = width16;
-    this._width4 = width16 * 3 / 4;
-    this._widthBar = width16 / 8;
-    this._height = width16 * 9 / 16;
-    this.canvas = document.createElement('canvas');
-    this.canvas.setAttribute('id', this.id);
-    this.canvas.width = this._width16;
-    this.canvas.height = this._height;
-    const c = this.canvas.getContext('2d');
+    this.options = options;
+    this._canvas = document.createElement('canvas');
+    this._canvas.setAttribute('id', this.id);
+    this.setCanvasSize(this.options.options.size);
+    const c = this._canvas.getContext('2d');
     if (c === null) {
       throw new Error('Can not get 2d context.');
     }
     this.ctx = c;
-  }
-
-  public append(parent: HTMLElement): void {
-    parent.append(this.canvas);
   }
 
   public addBack(back: IBack): void {
@@ -103,6 +101,15 @@ export class Theater implements ITheater {
       window.cancelAnimationFrame(this._requestId);
       this._requestId = -1;
     }
+  }
+
+  public setCanvasSize(width16: number): void {
+    this._width16 = width16;
+    this._width4 = width16 * 3 / 4;
+    this._widthBar = width16 / 8;
+    this._height = width16 * 9 / 16;
+    this._canvas.width = this._width16;
+    this._canvas.height = this._height;
   }
 
   private draw(): void {
