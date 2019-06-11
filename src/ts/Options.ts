@@ -1,6 +1,6 @@
 export interface IHatsuOptions {
   type: 'default' | 'file';
-  file: string;
+  file?: File;
 }
 
 export interface IBackOptions {
@@ -82,14 +82,33 @@ export class Options {
 
   private getOptions(): IOptions {
     return {
-      hatsu: {
-        type: 'default',
-        file: '',
-      },
+      hatsu: this.getHatsu(),
       back: {
         type: 'default',
       },
       size: this.getSize(),
+    };
+  }
+
+  private getHatsu(): IHatsuOptions {
+    const hatsuInput = getChecked(document.getElementsByName('hatsu'));
+    if (hatsuInput) {
+      const s = hatsuInput.id.replace('hatsu_', '');
+      if (s === 'file') {
+        const f = document.getElementById('hatsu_file_path');
+        if (f) {
+          const fi = f as HTMLInputElement;
+          if (fi && fi.files && typeof (fi.files[0]) !== 'undefined') {
+            return {
+              type: 'file',
+              file: fi.files[0],
+            };
+          }
+        }
+      }
+    }
+    return {
+      type: 'default',
     };
   }
 

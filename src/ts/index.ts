@@ -30,7 +30,7 @@ class App {
     this.theater.start();
   }
 
-  public onChangeOptionInputs(): void {
+  public async onChangeOptionInputs() {
     const diff = this.options.diff();
     if (Object.keys(diff).length === 0) {
       return;
@@ -39,19 +39,29 @@ class App {
     if (diff.size) {
       this.theater.setCanvasSize(diff.size);
     }
+    if (diff.hatsu) {
+      await this.setHatsu(diff.hatsu);
+    }
     this.theater.start();
   }
 
   private async setHatsu(opt: IHatsuOptions) {
+    const h = new Hatsu();
     switch (opt.type) {
+      case 'file':
+        if (opt.file) {
+          await h.loadFile(opt.file);
+        } else {
+          return;
+        }
+        break;
       case 'default':
       default:
-        const h = new Hatsu();
         await h.load(DEFAULT_HATSU);
-        this.theater.clearHatsu();
-        addSprites(this.theater, h);
         break;
     }
+    this.theater.clearHatsu();
+    addSprites(this.theater, h);
   }
 
   private async setBack(opt: IBackOptions) {
