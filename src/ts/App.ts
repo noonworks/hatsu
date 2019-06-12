@@ -84,6 +84,9 @@ export default class App {
       await this.setHatsu(diff.hatsu);
     }
     if (diff.back) {
+      if (diff.back.type === 'video') {
+        this.stop();
+      }
       await this.setBack(diff.back);
     }
     this.theater.start();
