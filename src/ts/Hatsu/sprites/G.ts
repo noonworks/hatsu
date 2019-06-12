@@ -7,6 +7,10 @@ const G_LENGTH = G_END - G_START;
 const G_ZOOM = 1.2;
 
 export class G extends HatsuBase {
+  public get end(): number {
+    return G_END;
+  }
+
   public draw(theater: ITheater): void {
     const msec = this.modular(theater.msec) - G_START;
     if (msec < 0 || msec > G_LENGTH) { return; }

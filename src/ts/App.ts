@@ -1,9 +1,10 @@
-import { ImageBack } from './ImageBack';
+import { ImageBack } from './Back/ImageBack';
 import { ITheater } from './ITheater';
 import { Theater } from './Theater';
 import { Options, IBackOptions, IHatsuOptions } from './Options';
 import { HatsuImage } from './Hatsu/HatsuImage';
 import { addAllHatsus } from './Hatsu/Builder';
+import { VideoBack } from './Back/VideoBack';
 
 const DEFAULT_HATSU = './img/hatsu.png';
 const DEFAULT_BACK = './img/sample_back.png';
@@ -11,6 +12,8 @@ const DEFAULT_BACK = './img/sample_back.png';
 export default class App {
   private theater: ITheater;
   private options: Options;
+
+  private mr: MediaRecorder | null = null;
 
   constructor() {
     this.options = new Options();
@@ -26,12 +29,46 @@ export default class App {
     this.setBack(this.options.options.back);
   }
 
-  public start(): void {
-    this.theater.start();
+  public start(stopAtEnd: boolean = false): void {
+    this.theater.start(stopAtEnd);
   }
 
   public stop(): void {
     this.theater.stop();
+    if (this.mr) {
+      this.mr.stop();
+      this.mr = null;
+    }
+  }
+
+  public record(ondataavailable: (event: MediaRecorderDataAvailableEvent) => void, mime: string): void {
+    if (this.mr) { return; }
+    this.stop();
+    // media stream
+    const ms = new MediaStream();
+    ms.addTrack((this.theater.canvas as any).captureStream().getTracks()[0]);
+    // audio
+    let vid: HTMLVideoElement | null = null;
+    for (let i = 0; i < this.theater.backs.length; i++) {
+      if (this.theater.backs[i] instanceof VideoBack) {
+        vid = (this.theater.backs[i] as VideoBack).videoElement;
+      }
+    }
+    if (vid) {
+      const audioContext = new AudioContext();
+      const streamDestination = audioContext.createMediaStreamDestination();
+      audioContext.createMediaElementSource(vid).connect(streamDestination);
+      ms.addTrack(streamDestination.stream.getAudioTracks()[0]);
+    }
+    // media recorder
+    this.mr = new MediaRecorder(ms, { mimeType: mime });
+    this.mr.ondataavailable = ondataavailable;
+    this.theater.onend = () => {
+      if (this.mr) { this.mr.stop(); }
+    };
+    // start
+    this.mr.start();
+    this.start(true);
   }
 
   public async onChangeOptionInputs() {
@@ -47,6 +84,9 @@ export default class App {
       await this.setHatsu(diff.hatsu);
     }
     if (diff.back) {
+      if (diff.back.type === 'video') {
+        this.stop();
+      }
       await this.setBack(diff.back);
     }
     this.theater.start();
@@ -73,10 +113,18 @@ export default class App {
 
   private async setBack(opt: IBackOptions) {
     const ib = new ImageBack();
+    const vb = new VideoBack();
     switch (opt.type) {
       case 'image':
         if (opt.file) {
           await ib.loadFile(opt.file);
+        } else {
+          return;
+        }
+        break;
+      case 'video':
+        if (opt.file) {
+          await vb.loadFile(opt.file);
         } else {
           return;
         }
@@ -87,6 +135,10 @@ export default class App {
         break;
     }
     this.theater.clearBack();
-    this.theater.addBack(ib);
+    if (opt.type === 'video') {
+      this.theater.addBack(vb);
+    } else {
+      this.theater.addBack(ib);
+    }
   }
 }

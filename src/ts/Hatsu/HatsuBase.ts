@@ -8,6 +8,7 @@ const WHOLE_MSEC = 56270 + 1000; // J_END + 1000
 
 export abstract class HatsuBase implements IHatsu {
   protected img: IHatsuImage;
+  abstract end: number;
 
   constructor(opt: { img: IHatsuImage }) {
     this.img = opt.img;

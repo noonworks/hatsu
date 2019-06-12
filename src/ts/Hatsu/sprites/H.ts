@@ -8,6 +8,10 @@ const H_R_HORIZON = 27720;
 const H_ZOOM = 1.2;
 
 export class H extends HatsuBase {
+  public get end(): number {
+    return H_END;
+  }
+
   public draw(theater: ITheater): void {
     const msec = this.modular(theater.msec) - H_START;
     if (msec < 0 || msec > H_LENGTH) { return; }

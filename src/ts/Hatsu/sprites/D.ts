@@ -7,6 +7,10 @@ const D_LENGTH = D_END - D_START;
 const D_MAX_ZOOM = 1.63;
 
 export class D extends HatsuBase {
+  public get end(): number {
+    return D_END;
+  }
+
   public draw(theater: ITheater): void {
     const msec = this.modular(theater.msec) - D_START;
     if (msec < 0 || msec > D_LENGTH) { return; }

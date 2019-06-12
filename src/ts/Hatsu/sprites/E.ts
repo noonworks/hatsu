@@ -8,6 +8,10 @@ const E_ZOOM_MIN = 0.15;
 const E_ZOOM_MAX = 2.6;
 
 export class E extends HatsuBase {
+  public get end(): number {
+    return E_END;
+  }
+
   public draw(theater: ITheater): void {
     const msec = this.modular(theater.msec) - E_START;
     if (msec < 0 || msec > E_LENGTH) { return; }

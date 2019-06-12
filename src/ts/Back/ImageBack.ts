@@ -1,18 +1,22 @@
-import { ITheater } from "./ITheater";
+import { ITheater } from "../ITheater";
 import { IBack } from "./IBack";
-import { CropInfo, calculateCropSize, CROP_INFO_DEFAULT } from "./Crop";
+import { CropInfo, calculateCropSize, CROP_INFO_DEFAULT } from "../Crop";
 
 export class ImageBack implements IBack {
   private img: HTMLImageElement = new Image();
   private _ready: boolean = false;
   private cropInfo: CropInfo = { ...CROP_INFO_DEFAULT };
 
-  public get hasSideBar(): boolean {
-    return this.cropInfo.hasSideBar;
-  }
+  public start(): void { }
+  public pause(): void { }
+  public stop(): void { }
 
   public get ready(): boolean {
     return this._ready;
+  }
+
+  public get length(): number {
+    return -1;
   }
 
   public load(src: string): Promise<HTMLImageElement> {

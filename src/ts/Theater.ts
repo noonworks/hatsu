@@ -1,10 +1,12 @@
 import { ITheater } from "./ITheater";
-import { IBack } from "./IBack";
+import { IBack } from "./Back/IBack";
 import Timer from "./Timer";
 import { Options } from "./Options";
 import { IHatsu } from "./Hatsu/IHatsu";
 
 export class Theater implements ITheater {
+  public onend: () => void = () => { };
+
   private id: string;
   private options: Options;
   private _canvas: HTMLCanvasElement;
@@ -19,6 +21,10 @@ export class Theater implements ITheater {
   private hatsu: IHatsu[] = [];
   private _timer: Timer = new Timer();
   private _requestId: number = -1;
+
+  private _maxLengthHatsu: number = 0;
+  private _maxLengthBack: number = 0;
+  private _length: number = 0;
 
   public get width16(): number {
     return this._width16;
@@ -48,6 +54,14 @@ export class Theater implements ITheater {
     return this._timer.msec();
   }
 
+  public get length(): number {
+    return this._length;
+  }
+
+  public get backs(): IBack[] {
+    return this.back;
+  }
+
   constructor(id: string, options: Options) {
     this.id = id;
     this.options = options;
@@ -63,26 +77,39 @@ export class Theater implements ITheater {
 
   public addBack(back: IBack): void {
     this.back.push(back);
+    this._maxLengthBack = Math.max(0, ...(this.back.map(b => b.length)));
+    this.calculateLength();
   }
 
   public clearBack(): void {
     this.back.length = 0;
+    this._maxLengthBack = 0;
+    this.calculateLength();
   }
 
   public addHatsu(hatsu: IHatsu): void {
     this.hatsu.push(hatsu);
+    this._maxLengthHatsu = Math.max(0, ...(this.hatsu.map(h => h.end)));
+    this.calculateLength();
   }
 
   public clearHatsu(): void {
     this.hatsu.length = 0;
+    this._maxLengthHatsu = 0;
+    this.calculateLength();
   }
 
-  public start(): void {
+  public start(stopAtEnd: boolean = false): void {
     if (this._timer.started && !this._timer.paused) {
       return;
     }
+    this.back.forEach((b) => b.start());
     this._timer.start();
     const loop = () => {
+      if (stopAtEnd && this.length <= this.msec) {
+        this.onend();
+        return;
+      }
       this.draw();
       this._requestId = window.requestAnimationFrame(loop);
     };
@@ -90,13 +117,16 @@ export class Theater implements ITheater {
   }
 
   public stop(): void {
+    this.back.forEach((b) => b.stop());
     this._timer.stop();
+    this.onend();
     window.cancelAnimationFrame(this._requestId);
     this._requestId = -1;
   }
 
   public pause(): void {
     if (this._timer.started && !this._timer.paused) {
+      this.back.forEach((b) => b.pause());
       this._timer.pause();
       window.cancelAnimationFrame(this._requestId);
       this._requestId = -1;
@@ -110,6 +140,10 @@ export class Theater implements ITheater {
     this._height = width16 * 9 / 16;
     this._canvas.width = this._width16;
     this._canvas.height = this._height;
+  }
+
+  private calculateLength(): void {
+    this._length = Math.max(0, this._maxLengthBack, this._maxLengthHatsu);
   }
 
   private draw(): void {

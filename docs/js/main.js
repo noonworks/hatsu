@@ -36,15 +36,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var ImageBack_1 = require("./ImageBack");
+var ImageBack_1 = require("./Back/ImageBack");
 var Theater_1 = require("./Theater");
 var Options_1 = require("./Options");
 var HatsuImage_1 = require("./Hatsu/HatsuImage");
 var Builder_1 = require("./Hatsu/Builder");
+var VideoBack_1 = require("./Back/VideoBack");
 var DEFAULT_HATSU = './img/hatsu.png';
 var DEFAULT_BACK = './img/sample_back.png';
 var App = /** @class */ (function () {
     function App() {
+        this.mr = null;
         this.options = new Options_1.Options();
         this.theater = new Theater_1.Theater('main_canvas', this.options);
         var result = document.getElementById('result_area');
@@ -61,11 +63,50 @@ var App = /** @class */ (function () {
             });
         });
     };
-    App.prototype.start = function () {
-        this.theater.start();
+    App.prototype.start = function (stopAtEnd) {
+        if (stopAtEnd === void 0) { stopAtEnd = false; }
+        this.theater.start(stopAtEnd);
     };
     App.prototype.stop = function () {
         this.theater.stop();
+        if (this.mr) {
+            this.mr.stop();
+            this.mr = null;
+        }
+    };
+    App.prototype.record = function (ondataavailable, mime) {
+        var _this = this;
+        if (this.mr) {
+            return;
+        }
+        this.stop();
+        // media stream
+        var ms = new MediaStream();
+        ms.addTrack(this.theater.canvas.captureStream().getTracks()[0]);
+        // audio
+        var vid = null;
+        for (var i = 0; i < this.theater.backs.length; i++) {
+            if (this.theater.backs[i] instanceof VideoBack_1.VideoBack) {
+                vid = this.theater.backs[i].videoElement;
+            }
+        }
+        if (vid) {
+            var audioContext = new AudioContext();
+            var streamDestination = audioContext.createMediaStreamDestination();
+            audioContext.createMediaElementSource(vid).connect(streamDestination);
+            ms.addTrack(streamDestination.stream.getAudioTracks()[0]);
+        }
+        // media recorder
+        this.mr = new MediaRecorder(ms, { mimeType: mime });
+        this.mr.ondataavailable = ondataavailable;
+        this.theater.onend = function () {
+            if (_this.mr) {
+                _this.mr.stop();
+            }
+        };
+        // start
+        this.mr.start();
+        this.start(true);
     };
     App.prototype.onChangeOptionInputs = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -88,6 +129,9 @@ var App = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         if (!diff.back) return [3 /*break*/, 4];
+                        if (diff.back.type === 'video') {
+                            this.stop();
+                        }
                         return [4 /*yield*/, this.setBack(diff.back)];
                     case 3:
                         _a.sent();
@@ -134,17 +178,19 @@ var App = /** @class */ (function () {
     };
     App.prototype.setBack = function (opt) {
         return __awaiter(this, void 0, void 0, function () {
-            var ib, _a;
+            var ib, vb, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
                         ib = new ImageBack_1.ImageBack();
+                        vb = new VideoBack_1.VideoBack();
                         _a = opt.type;
                         switch (_a) {
                             case 'image': return [3 /*break*/, 1];
-                            case 'default': return [3 /*break*/, 5];
+                            case 'video': return [3 /*break*/, 5];
+                            case 'default': return [3 /*break*/, 9];
                         }
-                        return [3 /*break*/, 5];
+                        return [3 /*break*/, 9];
                     case 1:
                         if (!opt.file) return [3 /*break*/, 3];
                         return [4 /*yield*/, ib.loadFile(opt.file)];
@@ -152,14 +198,27 @@ var App = /** @class */ (function () {
                         _b.sent();
                         return [3 /*break*/, 4];
                     case 3: return [2 /*return*/];
-                    case 4: return [3 /*break*/, 7];
-                    case 5: return [4 /*yield*/, ib.load(DEFAULT_BACK)];
+                    case 4: return [3 /*break*/, 11];
+                    case 5:
+                        if (!opt.file) return [3 /*break*/, 7];
+                        return [4 /*yield*/, vb.loadFile(opt.file)];
                     case 6:
                         _b.sent();
-                        return [3 /*break*/, 7];
-                    case 7:
+                        return [3 /*break*/, 8];
+                    case 7: return [2 /*return*/];
+                    case 8: return [3 /*break*/, 11];
+                    case 9: return [4 /*yield*/, ib.load(DEFAULT_BACK)];
+                    case 10:
+                        _b.sent();
+                        return [3 /*break*/, 11];
+                    case 11:
                         this.theater.clearBack();
-                        this.theater.addBack(ib);
+                        if (opt.type === 'video') {
+                            this.theater.addBack(vb);
+                        }
+                        else {
+                            this.theater.addBack(ib);
+                        }
                         return [2 /*return*/];
                 }
             });
@@ -169,7 +228,176 @@ var App = /** @class */ (function () {
 }());
 exports.default = App;
 
-},{"./Hatsu/Builder":3,"./Hatsu/HatsuImage":5,"./ImageBack":16,"./Options":17,"./Theater":18}],2:[function(require,module,exports){
+},{"./Back/ImageBack":2,"./Back/VideoBack":3,"./Hatsu/Builder":5,"./Hatsu/HatsuImage":7,"./Options":18,"./Theater":19}],2:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+var Crop_1 = require("../Crop");
+var ImageBack = /** @class */ (function () {
+    function ImageBack() {
+        this.img = new Image();
+        this._ready = false;
+        this.cropInfo = __assign({}, Crop_1.CROP_INFO_DEFAULT);
+    }
+    ImageBack.prototype.start = function () { };
+    ImageBack.prototype.pause = function () { };
+    ImageBack.prototype.stop = function () { };
+    Object.defineProperty(ImageBack.prototype, "ready", {
+        get: function () {
+            return this._ready;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ImageBack.prototype, "length", {
+        get: function () {
+            return -1;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    ImageBack.prototype.load = function (src) {
+        var _this = this;
+        return new Promise(function (resolve, reject) {
+            _this.img.onload = function () {
+                _this._ready = true;
+                _this.cropInfo = Crop_1.calculateCropSize(_this.img.width, _this.img.height);
+                resolve(_this.img);
+            };
+            _this.img.onerror = function (e) { return reject(e); };
+            _this.img.src = src + '?' + (new Date()).getTime();
+        });
+    };
+    ImageBack.prototype.loadFile = function (file) {
+        var _this = this;
+        return new Promise(function (resolve, reject) {
+            _this.img.onload = function () {
+                _this._ready = true;
+                _this.cropInfo = Crop_1.calculateCropSize(_this.img.width, _this.img.height);
+                resolve(_this.img);
+            };
+            _this.img.onerror = function (e) { return reject(e); };
+            var fileReader = new FileReader();
+            fileReader.onload = function (e) {
+                if (e.target) {
+                    _this.img.src = e.target.result;
+                }
+            };
+            fileReader.onerror = function (e) { return reject(e); };
+            fileReader.readAsDataURL(file);
+        });
+    };
+    ImageBack.prototype.draw = function (theater) {
+        theater.context.fillRect(0, 0, theater.width16, theater.height);
+        if (!this.ready) {
+            return;
+        }
+        var x = this.cropInfo.hasSideBar ? theater.widthBar : 0;
+        var w = this.cropInfo.hasSideBar ? theater.width4 : theater.width16;
+        theater.context.drawImage(this.img, this.cropInfo.x, this.cropInfo.y, this.cropInfo.w, this.cropInfo.h, x, 0, w, theater.height);
+    };
+    return ImageBack;
+}());
+exports.ImageBack = ImageBack;
+
+},{"../Crop":4}],3:[function(require,module,exports){
+"use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+var Crop_1 = require("../Crop");
+var VideoBack = /** @class */ (function () {
+    function VideoBack() {
+        this._ready = false;
+        this.cropInfo = __assign({}, Crop_1.CROP_INFO_DEFAULT);
+        this.video = document.createElement('video');
+    }
+    Object.defineProperty(VideoBack.prototype, "ready", {
+        get: function () {
+            return this._ready;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(VideoBack.prototype, "length", {
+        get: function () {
+            if (this._ready) {
+                return this.video.duration * 1000;
+            }
+            return -1;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(VideoBack.prototype, "videoElement", {
+        get: function () {
+            return this.video;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    VideoBack.prototype.start = function () {
+        this.video.play();
+    };
+    VideoBack.prototype.pause = function () {
+        this.video.pause();
+    };
+    VideoBack.prototype.stop = function () {
+        this.video.pause();
+        this.video.currentTime = 0;
+    };
+    VideoBack.prototype.loadFile = function (file) {
+        var _this = this;
+        return new Promise(function (resolve, reject) {
+            _this.video.onloadeddata = function () {
+                _this._ready = true;
+                _this.cropInfo = Crop_1.calculateCropSize(_this.video.videoWidth, _this.video.videoHeight);
+                resolve(_this.video);
+            };
+            _this.video.onerror = function (e) { return reject(e); };
+            var fileReader = new FileReader();
+            fileReader.onload = function (e) {
+                if (e.target) {
+                    _this.video.src = e.target.result;
+                }
+            };
+            fileReader.onerror = function (e) { return reject(e); };
+            fileReader.readAsDataURL(file);
+        });
+    };
+    VideoBack.prototype.draw = function (theater) {
+        theater.context.fillRect(0, 0, theater.width16, theater.height);
+        if (!this.ready) {
+            return;
+        }
+        var x = this.cropInfo.hasSideBar ? theater.widthBar : 0;
+        var w = this.cropInfo.hasSideBar ? theater.width4 : theater.width16;
+        theater.context.drawImage(this.video, this.cropInfo.x, this.cropInfo.y, this.cropInfo.w, this.cropInfo.h, x, 0, w, theater.height);
+    };
+    return VideoBack;
+}());
+exports.VideoBack = VideoBack;
+
+},{"../Crop":4}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CROP_INFO_DEFAULT = {
@@ -217,7 +445,7 @@ function calculateCropSize(width, height) {
 }
 exports.calculateCropSize = calculateCropSize;
 
-},{}],3:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var A_1 = require("./sprites/A");
@@ -237,7 +465,7 @@ function addAllHatsus(theater, img) {
 }
 exports.addAllHatsus = addAllHatsus;
 
-},{"./sprites/A":6,"./sprites/B":7,"./sprites/C":8,"./sprites/D":9,"./sprites/E":10,"./sprites/F":11,"./sprites/G":12,"./sprites/H":13,"./sprites/I":14,"./sprites/J":15}],4:[function(require,module,exports){
+},{"./sprites/A":8,"./sprites/B":9,"./sprites/C":10,"./sprites/D":11,"./sprites/E":12,"./sprites/F":13,"./sprites/G":14,"./sprites/H":15,"./sprites/I":16,"./sprites/J":17}],6:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BASE_ALPHA = 0.82;
@@ -270,7 +498,7 @@ var HatsuBase = /** @class */ (function () {
 }());
 exports.HatsuBase = HatsuBase;
 
-},{}],5:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var HatsuImage = /** @class */ (function () {
@@ -339,7 +567,7 @@ var HatsuImage = /** @class */ (function () {
 }());
 exports.HatsuImage = HatsuImage;
 
-},{}],6:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -364,6 +592,13 @@ var A = /** @class */ (function (_super) {
     function A() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    Object.defineProperty(A.prototype, "end", {
+        get: function () {
+            return exports.A_END;
+        },
+        enumerable: true,
+        configurable: true
+    });
     A.prototype.draw = function (theater) {
         var msec = this.modular(theater.msec) - exports.A_START;
         if (msec < 0 || msec > A_LENGTH) {
@@ -394,7 +629,7 @@ var A = /** @class */ (function (_super) {
 }(HatsuBase_1.HatsuBase));
 exports.A = A;
 
-},{"../HatsuBase":4}],7:[function(require,module,exports){
+},{"../HatsuBase":6}],9:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -419,6 +654,13 @@ var B = /** @class */ (function (_super) {
     function B() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    Object.defineProperty(B.prototype, "end", {
+        get: function () {
+            return exports.B_END;
+        },
+        enumerable: true,
+        configurable: true
+    });
     B.prototype.draw = function (theater) {
         var msec = this.modular(theater.msec) - exports.B_START;
         if (msec < 0 || msec > B_LENGTH) {
@@ -454,7 +696,7 @@ var B = /** @class */ (function (_super) {
 }(HatsuBase_1.HatsuBase));
 exports.B = B;
 
-},{"../HatsuBase":4}],8:[function(require,module,exports){
+},{"../HatsuBase":6}],10:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -479,6 +721,13 @@ var C = /** @class */ (function (_super) {
     function C() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    Object.defineProperty(C.prototype, "end", {
+        get: function () {
+            return exports.C_END;
+        },
+        enumerable: true,
+        configurable: true
+    });
     C.prototype.draw = function (theater) {
         var msec = this.modular(theater.msec) - exports.C_START;
         if (msec < 0 || msec > C_LENGTH) {
@@ -509,7 +758,7 @@ var C = /** @class */ (function (_super) {
 }(HatsuBase_1.HatsuBase));
 exports.C = C;
 
-},{"../HatsuBase":4}],9:[function(require,module,exports){
+},{"../HatsuBase":6}],11:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -535,6 +784,13 @@ var D = /** @class */ (function (_super) {
     function D() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    Object.defineProperty(D.prototype, "end", {
+        get: function () {
+            return exports.D_END;
+        },
+        enumerable: true,
+        configurable: true
+    });
     D.prototype.draw = function (theater) {
         var msec = this.modular(theater.msec) - exports.D_START;
         if (msec < 0 || msec > D_LENGTH) {
@@ -578,7 +834,7 @@ var D = /** @class */ (function (_super) {
 }(HatsuBase_1.HatsuBase));
 exports.D = D;
 
-},{"../HatsuBase":4}],10:[function(require,module,exports){
+},{"../HatsuBase":6}],12:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -605,6 +861,13 @@ var E = /** @class */ (function (_super) {
     function E() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    Object.defineProperty(E.prototype, "end", {
+        get: function () {
+            return exports.E_END;
+        },
+        enumerable: true,
+        configurable: true
+    });
     E.prototype.draw = function (theater) {
         var msec = this.modular(theater.msec) - exports.E_START;
         if (msec < 0 || msec > E_LENGTH) {
@@ -643,7 +906,7 @@ var E = /** @class */ (function (_super) {
 }(HatsuBase_1.HatsuBase));
 exports.E = E;
 
-},{"../HatsuBase":4}],11:[function(require,module,exports){
+},{"../HatsuBase":6}],13:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -669,6 +932,13 @@ var F = /** @class */ (function (_super) {
     function F() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    Object.defineProperty(F.prototype, "end", {
+        get: function () {
+            return exports.F_END;
+        },
+        enumerable: true,
+        configurable: true
+    });
     F.prototype.draw = function (theater) {
         var msec = this.modular(theater.msec) - exports.F_START;
         if (msec < 0 || msec > F_LENGTH) {
@@ -699,7 +969,7 @@ var F = /** @class */ (function (_super) {
 }(HatsuBase_1.HatsuBase));
 exports.F = F;
 
-},{"../HatsuBase":4}],12:[function(require,module,exports){
+},{"../HatsuBase":6}],14:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -725,6 +995,13 @@ var G = /** @class */ (function (_super) {
     function G() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    Object.defineProperty(G.prototype, "end", {
+        get: function () {
+            return exports.G_END;
+        },
+        enumerable: true,
+        configurable: true
+    });
     G.prototype.draw = function (theater) {
         var msec = this.modular(theater.msec) - exports.G_START;
         if (msec < 0 || msec > G_LENGTH) {
@@ -770,7 +1047,7 @@ var G = /** @class */ (function (_super) {
 }(HatsuBase_1.HatsuBase));
 exports.G = G;
 
-},{"../HatsuBase":4}],13:[function(require,module,exports){
+},{"../HatsuBase":6}],15:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -797,6 +1074,13 @@ var H = /** @class */ (function (_super) {
     function H() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    Object.defineProperty(H.prototype, "end", {
+        get: function () {
+            return exports.H_END;
+        },
+        enumerable: true,
+        configurable: true
+    });
     H.prototype.draw = function (theater) {
         var msec = this.modular(theater.msec) - exports.H_START;
         if (msec < 0 || msec > H_LENGTH) {
@@ -842,7 +1126,7 @@ var H = /** @class */ (function (_super) {
 }(HatsuBase_1.HatsuBase));
 exports.H = H;
 
-},{"../HatsuBase":4}],14:[function(require,module,exports){
+},{"../HatsuBase":6}],16:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -873,6 +1157,13 @@ var I = /** @class */ (function (_super) {
         _this.pathes = {};
         return _this;
     }
+    Object.defineProperty(I.prototype, "end", {
+        get: function () {
+            return exports.I_END;
+        },
+        enumerable: true,
+        configurable: true
+    });
     I.prototype.draw = function (theater) {
         var msec = this.modular(theater.msec) - exports.I_START;
         if (msec < 0 || msec > I_LENGTH) {
@@ -903,7 +1194,7 @@ var I = /** @class */ (function (_super) {
 }(HatsuBase_1.HatsuBase));
 exports.I = I;
 
-},{"../HatsuBase":4}],15:[function(require,module,exports){
+},{"../HatsuBase":6}],17:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -942,6 +1233,13 @@ var J = /** @class */ (function (_super) {
         _this.rotatePathPos = 0;
         return _this;
     }
+    Object.defineProperty(J.prototype, "end", {
+        get: function () {
+            return exports.J_END;
+        },
+        enumerable: true,
+        configurable: true
+    });
     J.prototype.draw = function (theater) {
         var msec = this.modular(theater.msec) - exports.J_START;
         if (msec < 0 || msec > J_LENGTH) {
@@ -989,86 +1287,7 @@ var J = /** @class */ (function (_super) {
 }(HatsuBase_1.HatsuBase));
 exports.J = J;
 
-},{"../HatsuBase":4}],16:[function(require,module,exports){
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-var Crop_1 = require("./Crop");
-var ImageBack = /** @class */ (function () {
-    function ImageBack() {
-        this.img = new Image();
-        this._ready = false;
-        this.cropInfo = __assign({}, Crop_1.CROP_INFO_DEFAULT);
-    }
-    Object.defineProperty(ImageBack.prototype, "hasSideBar", {
-        get: function () {
-            return this.cropInfo.hasSideBar;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ImageBack.prototype, "ready", {
-        get: function () {
-            return this._ready;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    ImageBack.prototype.load = function (src) {
-        var _this = this;
-        return new Promise(function (resolve, reject) {
-            _this.img.onload = function () {
-                _this._ready = true;
-                _this.cropInfo = Crop_1.calculateCropSize(_this.img.width, _this.img.height);
-                resolve(_this.img);
-            };
-            _this.img.onerror = function (e) { return reject(e); };
-            _this.img.src = src + '?' + (new Date()).getTime();
-        });
-    };
-    ImageBack.prototype.loadFile = function (file) {
-        var _this = this;
-        return new Promise(function (resolve, reject) {
-            _this.img.onload = function () {
-                _this._ready = true;
-                _this.cropInfo = Crop_1.calculateCropSize(_this.img.width, _this.img.height);
-                resolve(_this.img);
-            };
-            _this.img.onerror = function (e) { return reject(e); };
-            var fileReader = new FileReader();
-            fileReader.onload = function (e) {
-                if (e.target) {
-                    _this.img.src = e.target.result;
-                }
-            };
-            fileReader.onerror = function (e) { return reject(e); };
-            fileReader.readAsDataURL(file);
-        });
-    };
-    ImageBack.prototype.draw = function (theater) {
-        theater.context.fillRect(0, 0, theater.width16, theater.height);
-        if (!this.ready) {
-            return;
-        }
-        var x = this.cropInfo.hasSideBar ? theater.widthBar : 0;
-        var w = this.cropInfo.hasSideBar ? theater.width4 : theater.width16;
-        theater.context.drawImage(this.img, this.cropInfo.x, this.cropInfo.y, this.cropInfo.w, this.cropInfo.h, x, 0, w, theater.height);
-    };
-    return ImageBack;
-}());
-exports.ImageBack = ImageBack;
-
-},{"./Crop":2}],17:[function(require,module,exports){
+},{"../HatsuBase":6}],18:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function getChecked(inputs) {
@@ -1176,6 +1395,12 @@ var Options = /** @class */ (function () {
                             file: file,
                         };
                     }
+                    if (file.type.startsWith('video/')) {
+                        return {
+                            type: 'video',
+                            file: file,
+                        };
+                    }
                 }
             }
         }
@@ -1199,7 +1424,7 @@ var Options = /** @class */ (function () {
 }());
 exports.Options = Options;
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -1208,6 +1433,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var Timer_1 = __importDefault(require("./Timer"));
 var Theater = /** @class */ (function () {
     function Theater(id, options) {
+        this.onend = function () { };
         this._width16 = 480;
         this._width4 = 320;
         this._widthBar = 60;
@@ -1216,6 +1442,9 @@ var Theater = /** @class */ (function () {
         this.hatsu = [];
         this._timer = new Timer_1.default();
         this._requestId = -1;
+        this._maxLengthHatsu = 0;
+        this._maxLengthBack = 0;
+        this._length = 0;
         this.id = id;
         this.options = options;
         this._canvas = document.createElement('canvas');
@@ -1276,37 +1505,68 @@ var Theater = /** @class */ (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(Theater.prototype, "length", {
+        get: function () {
+            return this._length;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Theater.prototype, "backs", {
+        get: function () {
+            return this.back;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Theater.prototype.addBack = function (back) {
         this.back.push(back);
+        this._maxLengthBack = Math.max.apply(Math, [0].concat((this.back.map(function (b) { return b.length; }))));
+        this.calculateLength();
     };
     Theater.prototype.clearBack = function () {
         this.back.length = 0;
+        this._maxLengthBack = 0;
+        this.calculateLength();
     };
     Theater.prototype.addHatsu = function (hatsu) {
         this.hatsu.push(hatsu);
+        this._maxLengthHatsu = Math.max.apply(Math, [0].concat((this.hatsu.map(function (h) { return h.end; }))));
+        this.calculateLength();
     };
     Theater.prototype.clearHatsu = function () {
         this.hatsu.length = 0;
+        this._maxLengthHatsu = 0;
+        this.calculateLength();
     };
-    Theater.prototype.start = function () {
+    Theater.prototype.start = function (stopAtEnd) {
         var _this = this;
+        if (stopAtEnd === void 0) { stopAtEnd = false; }
         if (this._timer.started && !this._timer.paused) {
             return;
         }
+        this.back.forEach(function (b) { return b.start(); });
         this._timer.start();
         var loop = function () {
+            if (stopAtEnd && _this.length <= _this.msec) {
+                _this.onend();
+                return;
+            }
             _this.draw();
             _this._requestId = window.requestAnimationFrame(loop);
         };
         window.requestAnimationFrame(loop);
     };
     Theater.prototype.stop = function () {
+        this.back.forEach(function (b) { return b.stop(); });
         this._timer.stop();
+        this.onend();
         window.cancelAnimationFrame(this._requestId);
         this._requestId = -1;
     };
     Theater.prototype.pause = function () {
         if (this._timer.started && !this._timer.paused) {
+            this.back.forEach(function (b) { return b.pause(); });
             this._timer.pause();
             window.cancelAnimationFrame(this._requestId);
             this._requestId = -1;
@@ -1319,6 +1579,9 @@ var Theater = /** @class */ (function () {
         this._height = width16 * 9 / 16;
         this._canvas.width = this._width16;
         this._canvas.height = this._height;
+    };
+    Theater.prototype.calculateLength = function () {
+        this._length = Math.max(0, this._maxLengthBack, this._maxLengthHatsu);
     };
     Theater.prototype.draw = function () {
         var _this = this;
@@ -1335,7 +1598,7 @@ var Theater = /** @class */ (function () {
 }());
 exports.Theater = Theater;
 
-},{"./Timer":19}],19:[function(require,module,exports){
+},{"./Timer":20}],20:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var Timer = /** @class */ (function () {
@@ -1401,7 +1664,7 @@ var Timer = /** @class */ (function () {
 }());
 exports.default = Timer;
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1443,17 +1706,34 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var App_1 = __importDefault(require("./App"));
+var MIME_TYPES = [
+    { mime: 'video/mpeg', ext: 'mpeg' },
+    { mime: 'video/webm;codecs=H264', ext: 'webm' },
+    { mime: 'video/webm', ext: 'webm' },
+];
+function getMime() {
+    for (var i = 0; i < MIME_TYPES.length; i++) {
+        if (MediaRecorder.isTypeSupported(MIME_TYPES[i].mime)) {
+            return MIME_TYPES[i];
+        }
+    }
+    return {
+        mime: '',
+        ext: '',
+    };
+}
 function initialize() {
     return __awaiter(this, void 0, void 0, function () {
-        var app, optionInputs, restartButton;
+        var app, recordButton, optionInputs, restartButton, mime, canDL, dlMsg, dlLink, dlArea, dlVideo, ondataavailable;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     app = new App_1.default();
-                    optionInputs = document.querySelectorAll('#options input');
                     return [4 /*yield*/, app.setup()];
                 case 1:
                     _a.sent();
+                    recordButton = document.getElementById('restart_record');
+                    optionInputs = document.querySelectorAll('#options input');
                     optionInputs.forEach(function (i) { return i.addEventListener('change', function () { app.onChangeOptionInputs(); }); });
                     restartButton = document.getElementById('restart');
                     if (restartButton) {
@@ -1461,6 +1741,41 @@ function initialize() {
                             app.stop();
                             app.start();
                         });
+                    }
+                    mime = getMime();
+                    canDL = mime.mime.length > 0;
+                    dlMsg = document.getElementById('download_message');
+                    if (canDL && dlMsg) {
+                        dlMsg.innerText = '※表示された内容を録画するので、ダウンロードまで1周分待ってね（録画中は動画の音が出ません）';
+                    }
+                    dlLink = document.getElementById('download_link');
+                    dlArea = document.getElementById('download_area');
+                    dlVideo = document.createElement('video');
+                    ondataavailable = function (e) {
+                        var url = URL.createObjectURL(e.data);
+                        dlVideo.src = url;
+                        if (dlLink && dlArea) {
+                            dlLink.href = url;
+                            dlLink.setAttribute('download', 'hatsu.' + mime.ext);
+                            dlArea.style.display = 'block';
+                        }
+                        if (recordButton) {
+                            recordButton.innerText = '最初から再生して録画';
+                            recordButton.disabled = false;
+                        }
+                    };
+                    // record
+                    if (recordButton) {
+                        if (canDL) {
+                            recordButton.addEventListener('click', function () {
+                                recordButton.innerText = '録画中...';
+                                recordButton.disabled = true;
+                                app.record(ondataavailable, mime.mime);
+                            });
+                        }
+                        else {
+                            recordButton.style.display = 'none';
+                        }
                     }
                     app.start();
                     return [2 /*return*/];
@@ -1470,4 +1785,4 @@ function initialize() {
 }
 window.addEventListener('load', initialize);
 
-},{"./App":1}]},{},[20]);
+},{"./App":1}]},{},[21]);

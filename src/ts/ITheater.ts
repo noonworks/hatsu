@@ -1,4 +1,4 @@
-import { IBack } from "./IBack";
+import { IBack } from "./Back/IBack";
 import { IHatsu } from "./Hatsu/IHatsu";
 
 export interface ITheater {
@@ -9,12 +9,15 @@ export interface ITheater {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
   msec: number;
+  length: number;
+  backs: IBack[];
+  onend: () => void;
   addBack(back: IBack): void;
   clearBack(): void;
   addHatsu(hatsu: IHatsu): void;
   clearHatsu(): void;
   setCanvasSize(width16: number): void;
-  start(): void;
+  start(stopAtEnd?: boolean): void;
   stop(): void;
   pause(): void;
 }
