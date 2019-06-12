@@ -10,6 +10,7 @@ export interface ITheater {
   context: CanvasRenderingContext2D;
   msec: number;
   length: number;
+  backs: IBack[];
   onend: () => void;
   addBack(back: IBack): void;
   clearBack(): void;

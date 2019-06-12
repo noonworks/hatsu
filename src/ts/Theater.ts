@@ -58,6 +58,10 @@ export class Theater implements ITheater {
     return this._length;
   }
 
+  public get backs(): IBack[] {
+    return this.back;
+  }
+
   constructor(id: string, options: Options) {
     this.id = id;
     this.options = options;

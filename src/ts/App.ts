@@ -44,13 +44,29 @@ export default class App {
   public record(ondataavailable: (event: MediaRecorderDataAvailableEvent) => void, mime: string): void {
     if (this.mr) { return; }
     this.stop();
+    // media stream
     const ms = new MediaStream();
     ms.addTrack((this.theater.canvas as any).captureStream().getTracks()[0]);
+    // audio
+    let vid: HTMLVideoElement | null = null;
+    for (let i = 0; i < this.theater.backs.length; i++) {
+      if (this.theater.backs[i] instanceof VideoBack) {
+        vid = (this.theater.backs[i] as VideoBack).videoElement;
+      }
+    }
+    if (vid) {
+      const audioContext = new AudioContext();
+      const streamDestination = audioContext.createMediaStreamDestination();
+      audioContext.createMediaElementSource(vid).connect(streamDestination);
+      ms.addTrack(streamDestination.stream.getAudioTracks()[0]);
+    }
+    // media recorder
     this.mr = new MediaRecorder(ms, { mimeType: mime });
     this.mr.ondataavailable = ondataavailable;
     this.theater.onend = () => {
       if (this.mr) { this.mr.stop(); }
     };
+    // start
     this.mr.start();
     this.start(true);
   }

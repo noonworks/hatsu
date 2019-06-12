@@ -44,7 +44,7 @@ async function initialize() {
   // download
   const dlMsg = document.getElementById('download_message');
   if (canDL && dlMsg) {
-    dlMsg.innerText = '※表示された内容を録画するので、ダウンロードまで1周分待ってね';
+    dlMsg.innerText = '※表示された内容を録画するので、ダウンロードまで1周分待ってね（録画中は動画の音が出ません）';
   }
   const dlLink = document.getElementById('download_link');
   const dlArea = document.getElementById('download_area');

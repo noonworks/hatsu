@@ -18,6 +18,10 @@ export class VideoBack implements IBack {
     return -1;
   }
 
+  public get videoElement(): HTMLVideoElement {
+    return this.video;
+  }
+
   constructor() {
     this.video = document.createElement('video');
   }
