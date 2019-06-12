@@ -10,12 +10,13 @@ export interface ITheater {
   context: CanvasRenderingContext2D;
   msec: number;
   length: number;
+  onend: () => void;
   addBack(back: IBack): void;
   clearBack(): void;
   addHatsu(hatsu: IHatsu): void;
   clearHatsu(): void;
   setCanvasSize(width16: number): void;
-  start(): void;
+  start(stopAtEnd?: boolean): void;
   stop(): void;
   pause(): void;
 }

@@ -5,6 +5,8 @@ import { Options } from "./Options";
 import { IHatsu } from "./Hatsu/IHatsu";
 
 export class Theater implements ITheater {
+  public onend: () => void = () => { };
+
   private id: string;
   private options: Options;
   private _canvas: HTMLCanvasElement;
@@ -93,13 +95,17 @@ export class Theater implements ITheater {
     this.calculateLength();
   }
 
-  public start(): void {
+  public start(stopAtEnd: boolean = false): void {
     if (this._timer.started && !this._timer.paused) {
       return;
     }
     this.back.forEach((b) => b.start());
     this._timer.start();
     const loop = () => {
+      if (stopAtEnd && this.length <= this.msec) {
+        this.onend();
+        return;
+      }
       this.draw();
       this._requestId = window.requestAnimationFrame(loop);
     };
@@ -109,6 +115,7 @@ export class Theater implements ITheater {
   public stop(): void {
     this.back.forEach((b) => b.stop());
     this._timer.stop();
+    this.onend();
     window.cancelAnimationFrame(this._requestId);
     this._requestId = -1;
   }

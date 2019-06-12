@@ -13,6 +13,8 @@ export default class App {
   private theater: ITheater;
   private options: Options;
 
+  private mr: MediaRecorder | null = null;
+
   constructor() {
     this.options = new Options();
     this.theater = new Theater('main_canvas', this.options);
@@ -27,12 +29,30 @@ export default class App {
     this.setBack(this.options.options.back);
   }
 
-  public start(): void {
-    this.theater.start();
+  public start(stopAtEnd: boolean = false): void {
+    this.theater.start(stopAtEnd);
   }
 
   public stop(): void {
     this.theater.stop();
+    if (this.mr) {
+      this.mr.stop();
+      this.mr = null;
+    }
+  }
+
+  public record(ondataavailable: (event: MediaRecorderDataAvailableEvent) => void, mime: string): void {
+    if (this.mr) { return; }
+    this.stop();
+    const ms = new MediaStream();
+    ms.addTrack((this.theater.canvas as any).captureStream().getTracks()[0]);
+    this.mr = new MediaRecorder(ms, { mimeType: mime });
+    this.mr.ondataavailable = ondataavailable;
+    this.theater.onend = () => {
+      if (this.mr) { this.mr.stop(); }
+    };
+    this.mr.start();
+    this.start(true);
   }
 
   public async onChangeOptionInputs() {
