@@ -46,6 +46,9 @@ export default class App {
     if (diff.hatsu) {
       await this.setHatsu(diff.hatsu);
     }
+    if (diff.back) {
+      await this.setBack(diff.back);
+    }
     this.theater.start();
   }
 
@@ -69,14 +72,21 @@ export default class App {
   }
 
   private async setBack(opt: IBackOptions) {
+    const ib = new ImageBack();
     switch (opt.type) {
+      case 'image':
+        if (opt.file) {
+          await ib.loadFile(opt.file);
+        } else {
+          return;
+        }
+        break;
       case 'default':
       default:
-        const b = new ImageBack();
-        await b.load(DEFAULT_BACK);
-        this.theater.clearBack();
-        this.theater.addBack(b);
+        await ib.load(DEFAULT_BACK);
         break;
     }
+    this.theater.clearBack();
+    this.theater.addBack(ib);
   }
 }

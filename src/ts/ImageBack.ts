@@ -27,6 +27,25 @@ export class ImageBack implements IBack {
     });
   }
 
+  public loadFile(file: File): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      this.img.onload = () => {
+        this._ready = true;
+        this.cropInfo = calculateCropSize(this.img.width, this.img.height);
+        resolve(this.img);
+      }
+      this.img.onerror = (e) => reject(e);
+      const fileReader = new FileReader();
+      fileReader.onload = (e: ProgressEvent) => {
+        if (e.target) {
+          this.img.src = (e.target as any).result;
+        }
+      };
+      fileReader.onerror = (e) => reject(e);
+      fileReader.readAsDataURL(file);
+    });
+  }
+
   public draw(theater: ITheater): void {
     theater.context.fillRect(0, 0, theater.width16, theater.height);
     if (!this.ready) {

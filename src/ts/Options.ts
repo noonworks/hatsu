@@ -4,7 +4,8 @@ export interface IHatsuOptions {
 }
 
 export interface IBackOptions {
-  type: 'default';
+  type: 'default' | 'image';
+  file?: File;
 }
 
 export interface IOptions {
@@ -83,11 +84,19 @@ export class Options {
   private getOptions(): IOptions {
     return {
       hatsu: this.getHatsu(),
-      back: {
-        type: 'default',
-      },
+      back: this.getBack(),
       size: this.getSize(),
     };
+  }
+
+  private getFile(id: string): File | null {
+    const f = document.getElementById(id);
+    if (!f) { return null; }
+    const fi = f as HTMLInputElement;
+    if (fi && fi.files && typeof (fi.files[0]) !== 'undefined') {
+      return fi.files[0];
+    }
+    return null;
   }
 
   private getHatsu(): IHatsuOptions {
@@ -95,13 +104,31 @@ export class Options {
     if (hatsuInput) {
       const s = hatsuInput.id.replace('hatsu_', '');
       if (s === 'file') {
-        const f = document.getElementById('hatsu_file_path');
-        if (f) {
-          const fi = f as HTMLInputElement;
-          if (fi && fi.files && typeof (fi.files[0]) !== 'undefined') {
+        const file = this.getFile('hatsu_file_path');
+        if (file) {
+          return {
+            type: 'file',
+            file,
+          };
+        }
+      }
+    }
+    return {
+      type: 'default',
+    };
+  }
+
+  private getBack(): IBackOptions {
+    const backRadio = getChecked(document.getElementsByName('back'));
+    if (backRadio) {
+      const s = backRadio.id.replace('back_', '');
+      if (s === 'file') {
+        const file = this.getFile('back_file_path');
+        if (file) {
+          if (file.type.startsWith('image/')) {
             return {
-              type: 'file',
-              file: fi.files[0],
+              type: 'image',
+              file,
             };
           }
         }
