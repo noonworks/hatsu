@@ -81,6 +81,7 @@ export class Theater implements ITheater {
     if (this._timer.started && !this._timer.paused) {
       return;
     }
+    this.back.forEach((b) => b.start());
     this._timer.start();
     const loop = () => {
       this.draw();
@@ -90,6 +91,7 @@ export class Theater implements ITheater {
   }
 
   public stop(): void {
+    this.back.forEach((b) => b.stop());
     this._timer.stop();
     window.cancelAnimationFrame(this._requestId);
     this._requestId = -1;
@@ -97,6 +99,7 @@ export class Theater implements ITheater {
 
   public pause(): void {
     if (this._timer.started && !this._timer.paused) {
+      this.back.forEach((b) => b.pause());
       this._timer.pause();
       window.cancelAnimationFrame(this._requestId);
       this._requestId = -1;

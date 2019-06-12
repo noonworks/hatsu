@@ -4,7 +4,7 @@ export interface IHatsuOptions {
 }
 
 export interface IBackOptions {
-  type: 'default' | 'image';
+  type: 'default' | 'image' | 'video';
   file?: File;
 }
 
@@ -130,6 +130,12 @@ export class Options {
               type: 'image',
               file,
             };
+          }
+          if (file.type.startsWith('video/')) {
+            return {
+              type: 'video',
+              file,
+            }
           }
         }
       }

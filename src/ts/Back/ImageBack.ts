@@ -7,6 +7,10 @@ export class ImageBack implements IBack {
   private _ready: boolean = false;
   private cropInfo: CropInfo = { ...CROP_INFO_DEFAULT };
 
+  public start(): void { }
+  public pause(): void { }
+  public stop(): void { }
+
   public get ready(): boolean {
     return this._ready;
   }

@@ -4,6 +4,7 @@ import { Theater } from './Theater';
 import { Options, IBackOptions, IHatsuOptions } from './Options';
 import { HatsuImage } from './Hatsu/HatsuImage';
 import { addAllHatsus } from './Hatsu/Builder';
+import { VideoBack } from './Back/VideoBack';
 
 const DEFAULT_HATSU = './img/hatsu.png';
 const DEFAULT_BACK = './img/sample_back.png';
@@ -73,10 +74,18 @@ export default class App {
 
   private async setBack(opt: IBackOptions) {
     const ib = new ImageBack();
+    const vb = new VideoBack();
     switch (opt.type) {
       case 'image':
         if (opt.file) {
           await ib.loadFile(opt.file);
+        } else {
+          return;
+        }
+        break;
+      case 'video':
+        if (opt.file) {
+          await vb.loadFile(opt.file);
         } else {
           return;
         }
@@ -87,6 +96,10 @@ export default class App {
         break;
     }
     this.theater.clearBack();
-    this.theater.addBack(ib);
+    if (opt.type === 'video') {
+      this.theater.addBack(vb);
+    } else {
+      this.theater.addBack(ib);
+    }
   }
 }
