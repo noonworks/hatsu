@@ -20,6 +20,10 @@ export class Theater implements ITheater {
   private _timer: Timer = new Timer();
   private _requestId: number = -1;
 
+  private _maxLengthHatsu: number = 0;
+  private _maxLengthBack: number = 0;
+  private _length: number = 0;
+
   public get width16(): number {
     return this._width16;
   }
@@ -48,6 +52,10 @@ export class Theater implements ITheater {
     return this._timer.msec();
   }
 
+  public get length(): number {
+    return this._length;
+  }
+
   constructor(id: string, options: Options) {
     this.id = id;
     this.options = options;
@@ -63,18 +71,26 @@ export class Theater implements ITheater {
 
   public addBack(back: IBack): void {
     this.back.push(back);
+    this._maxLengthBack = Math.max(0, ...(this.back.map(b => b.length)));
+    this.calculateLength();
   }
 
   public clearBack(): void {
     this.back.length = 0;
+    this._maxLengthBack = 0;
+    this.calculateLength();
   }
 
   public addHatsu(hatsu: IHatsu): void {
     this.hatsu.push(hatsu);
+    this._maxLengthHatsu = Math.max(0, ...(this.hatsu.map(h => h.end)));
+    this.calculateLength();
   }
 
   public clearHatsu(): void {
     this.hatsu.length = 0;
+    this._maxLengthHatsu = 0;
+    this.calculateLength();
   }
 
   public start(): void {
@@ -113,6 +129,10 @@ export class Theater implements ITheater {
     this._height = width16 * 9 / 16;
     this._canvas.width = this._width16;
     this._canvas.height = this._height;
+  }
+
+  private calculateLength(): void {
+    this._length = Math.max(0, this._maxLengthBack, this._maxLengthHatsu);
   }
 
   private draw(): void {

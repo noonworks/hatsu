@@ -20,6 +20,10 @@ const J_ROTATE_MAX = 4680;
 export class J extends HatsuBase {
   private rotatePathPos: number = 0;
 
+  public get end(): number {
+    return J_END;
+  }
+
   public draw(theater: ITheater): void {
     const msec = this.modular(theater.msec) - J_START;
     if (msec < 0 || msec > J_LENGTH) {

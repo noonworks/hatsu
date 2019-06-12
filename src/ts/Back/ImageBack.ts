@@ -15,6 +15,10 @@ export class ImageBack implements IBack {
     return this._ready;
   }
 
+  public get length(): number {
+    return -1;
+  }
+
   public load(src: string): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
       this.img.onload = () => {

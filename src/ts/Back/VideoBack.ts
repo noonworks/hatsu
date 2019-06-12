@@ -11,6 +11,13 @@ export class VideoBack implements IBack {
     return this._ready;
   }
 
+  public get length(): number {
+    if (this._ready) {
+      return this.video.duration * 1000;
+    }
+    return -1;
+  }
+
   constructor() {
     this.video = document.createElement('video');
   }

@@ -6,6 +6,10 @@ export const B_END = 9320;
 const B_LENGTH = B_END - B_START;
 
 export class B extends HatsuBase {
+  public get end(): number {
+    return B_END;
+  }
+
   public draw(theater: ITheater): void {
     const msec = this.modular(theater.msec) - B_START;
     if (msec < 0 || msec > B_LENGTH) { return; }

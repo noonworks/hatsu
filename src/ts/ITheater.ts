@@ -9,6 +9,7 @@ export interface ITheater {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
   msec: number;
+  length: number;
   addBack(back: IBack): void;
   clearBack(): void;
   addHatsu(hatsu: IHatsu): void;

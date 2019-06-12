@@ -10,6 +10,10 @@ const I_ZOOM_MAX = 4.48;
 const I_ZOOM_MIN = 0.05;
 
 export class I extends HatsuBase {
+  public get end(): number {
+    return I_END;
+  }
+
   protected pathes: { [key: number]: SVGPathElement } = {};
 
   public draw(theater: ITheater): void {
