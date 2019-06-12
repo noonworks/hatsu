@@ -1,5 +1,5 @@
 import { ITheater } from "./ITheater";
-import { IBack } from "./IBack";
+import { IBack } from "./Back/IBack";
 import Timer from "./Timer";
 import { Options } from "./Options";
 import { IHatsu } from "./Hatsu/IHatsu";

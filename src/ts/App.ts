@@ -1,4 +1,4 @@
-import { ImageBack } from './ImageBack';
+import { ImageBack } from './Back/ImageBack';
 import { ITheater } from './ITheater';
 import { Theater } from './Theater';
 import { Options, IBackOptions, IHatsuOptions } from './Options';

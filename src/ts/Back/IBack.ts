@@ -1,4 +1,4 @@
-import { ITheater } from "./ITheater";
+import { ITheater } from "../ITheater";
 
 export interface IBack {
   hasSideBar: boolean;

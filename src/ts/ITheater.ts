@@ -1,4 +1,4 @@
-import { IBack } from "./IBack";
+import { IBack } from "./Back/IBack";
 import { IHatsu } from "./Hatsu/IHatsu";
 
 export interface ITheater {

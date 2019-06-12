@@ -1,6 +1,6 @@
-import { ITheater } from "./ITheater";
+import { ITheater } from "../ITheater";
 import { IBack } from "./IBack";
-import { CropInfo, calculateCropSize, CROP_INFO_DEFAULT } from "./Crop";
+import { CropInfo, calculateCropSize, CROP_INFO_DEFAULT } from "../Crop";
 
 export class ImageBack implements IBack {
   private img: HTMLImageElement = new Image();
