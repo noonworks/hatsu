@@ -30,6 +30,10 @@ export default class App {
     this.theater.start();
   }
 
+  public stop(): void {
+    this.theater.stop();
+  }
+
   public async onChangeOptionInputs() {
     const diff = this.options.diff();
     if (Object.keys(diff).length === 0) {
