@@ -1,5 +1,5 @@
 import { IBack } from "./IBack";
-import { IHatsuSprite } from "./IHatsuSprite";
+import { IHatsu } from "./Hatsu/IHatsu";
 
 export interface ITheater {
   width16: number;
@@ -11,7 +11,7 @@ export interface ITheater {
   msec: number;
   addBack(back: IBack): void;
   clearBack(): void;
-  addHatsu(hatsu: IHatsuSprite): void;
+  addHatsu(hatsu: IHatsu): void;
   clearHatsu(): void;
   setCanvasSize(width16: number): void;
   start(): void;

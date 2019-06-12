@@ -1,8 +1,8 @@
 import { ITheater } from "./ITheater";
 import { IBack } from "./IBack";
-import { IHatsuSprite } from "./IHatsuSprite";
 import Timer from "./Timer";
 import { Options } from "./Options";
+import { IHatsu } from "./Hatsu/IHatsu";
 
 export class Theater implements ITheater {
   private id: string;
@@ -16,7 +16,7 @@ export class Theater implements ITheater {
   private _height: number = 270;
 
   private back: IBack[] = [];
-  private hatsu: IHatsuSprite[] = [];
+  private hatsu: IHatsu[] = [];
   private _timer: Timer = new Timer();
   private _requestId: number = -1;
 
@@ -69,7 +69,7 @@ export class Theater implements ITheater {
     this.back.length = 0;
   }
 
-  public addHatsu(hatsu: IHatsuSprite): void {
+  public addHatsu(hatsu: IHatsu): void {
     this.hatsu.push(hatsu);
   }
 

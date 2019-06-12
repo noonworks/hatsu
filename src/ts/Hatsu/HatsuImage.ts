@@ -1,6 +1,6 @@
-import { IHatsu } from "./IHatsu";
+import { IHatsuImage } from "./IHatsuImage";
 
-export class Hatsu implements IHatsu {
+export class HatsuImage implements IHatsuImage {
   private _img: HTMLImageElement = new Image();
   private _ready: boolean = false;
 
@@ -44,6 +44,7 @@ export class Hatsu implements IHatsu {
           this._img.src = (e.target as any).result;
         }
       };
+      fileReader.onerror = (e) => reject(e);
       fileReader.readAsDataURL(file);
     });
   }

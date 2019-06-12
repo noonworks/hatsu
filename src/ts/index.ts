@@ -1,9 +1,9 @@
-import { Theater } from './Theater';
 import { ImageBack } from './ImageBack';
-import { Hatsu } from './Hatsu';
-import { addSprites } from './SpriteBuilder';
 import { ITheater } from './ITheater';
+import { Theater } from './Theater';
 import { Options, IBackOptions, IHatsuOptions } from './Options';
+import { HatsuImage } from './Hatsu/HatsuImage';
+import { addAllHatsus } from './Hatsu/Builder';
 
 const DEFAULT_HATSU = './img/hatsu.png';
 const DEFAULT_BACK = './img/sample_back.png';
@@ -46,7 +46,7 @@ class App {
   }
 
   private async setHatsu(opt: IHatsuOptions) {
-    const h = new Hatsu();
+    const h = new HatsuImage();
     switch (opt.type) {
       case 'file':
         if (opt.file) {
@@ -61,7 +61,7 @@ class App {
         break;
     }
     this.theater.clearHatsu();
-    addSprites(this.theater, h);
+    addAllHatsus(this.theater, h);
   }
 
   private async setBack(opt: IBackOptions) {
