@@ -43,7 +43,6 @@ export class VideoBack implements IBack {
     return new Promise((resolve, reject) => {
       this.video.onloadeddata = () => {
         this._ready = true;
-        console.log(this.video.videoWidth, this.video.videoHeight);
         this.cropInfo = calculateCropSize(this.video.videoWidth, this.video.videoHeight);
         resolve(this.video);
       }
